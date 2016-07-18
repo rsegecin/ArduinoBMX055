@@ -30,17 +30,19 @@ int readCoord(unsigned int coor) {
   int aux;
 
   digitalWrite(CSB1, LOW);
-  SPI.transfer(0x80 + coor);
-  aux = SPI.transfer(0x00);
+  SPI.transfer(0x80 + coor); // prepare for read operation register coor where are LSB.
+  aux = SPI.transfer(0x00); // reads LSB (4 bits)
   digitalWrite(CSB1, HIGH);
 
   //check if acceleration value has been updated since last it has been read out last
   if (aux & 1) {
-    aux = aux >> 4;
+    aux = aux >> 4; 
 
     digitalWrite(CSB1, LOW);
-    SPI.transfer(0x80 + coor + 1);
-    aux += (SPI.transfer(0x00) << 4);
+    SPI.transfer(0x80 + coor + 1); // MSB is on the next register
+    aux += (SPI.transfer(0x00) << 4); // sums MSB and LSB
+	
+	// fix the aux that is in two complements format
     if (aux & 0x800)
       aux &= ~(0x800);
     digitalWrite(CSB1, HIGH);
